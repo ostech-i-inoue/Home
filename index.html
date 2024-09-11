@@ -1,19 +1,127 @@
 <!DOCTYPE html>
+<html lang="ja">
 <head>
-    <title>Hello World</title>
+    <meta charset="UTF-8">
+    <title>WebGL Hello World</title>
+
+<!-- 頂点シェーダー -->
+<script id="vertshader" type="x-shader/vertshader">
+attribute vec3 vertPos;
+void main(void) {
+    gl_Position = vec4(vertPos, 1.0);
+}
+</script>
+
+<!-- フラグメントシェーダー -->
+<script id="fragshader" type="x-shader/fragshader">
+void main(void) {
+    gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+}
+</script>
+
 </head>
-<body onload="main()">
-  <canvas id="sample" width="640" height="480">キャンバスがサポートされていないよ！</canvas>
-  <script>
-  function main() {
-    // canvas要素取得
-    var canvas = document.getElementByid("sample");
-  
-    // 描画コンテキスト取得
-    var ctx = canvas.getContext("2d");
-  
-    // 文字列を描画
-    ctx.fillText("Hello World");
-  }
-  </script>
+<body>
+
+    <canvas id="canvas" width="512px" height="512px"></canvas>
+
+<!-- WebGLプログラム -->
+<script>
+window.addEventListener('load', function() {
+    init();
+});
+
+// CanvasElement
+var canvas = null;
+
+// GLコンテキスト
+var gl = null;
+
+// 頂点バッファ
+var vertBuffer = null;
+
+// シェーダープログラム
+var shaderProg = null;
+
+// シェーダーの頂点位置属性
+var shaderVertPosAttr = null;
+
+/**
+ * 初期化
+ */
+function init() {
+    canvas = document.getElementById('canvas');
+    gl = canvas.getContext('webgl');
+
+    // ビューポートの設定
+    gl.viewport(0, 0, canvas.width, canvas.height);
+
+    // 頂点バッファの作成
+    vertBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
+    var verts = [
+        0.0, 1.0, 0.0,
+        1.0, -1.0, 0.0,
+        -1.0, -1.0, 0.0
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+    // シェーダーコンパイル結果のチェック
+    var checkShaderCompile = function(shader, type) {
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            var errmes = type + ' shader compile failed: '
+                + gl.getShaderInfoLog(shader);
+            throw new Error(errmes);
+        }
+    };
+
+    // 頂点シェーダ―
+    var vertShaderSource = document.getElementById('vertshader').textContent;
+    var vertShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertShader, vertShaderSource);
+    gl.compileShader(vertShader);
+    checkShaderCompile(vertShader, 'vertex');
+
+    // フラグメントシェーダ―
+    var fragShaderSource = document.getElementById('fragshader').textContent;
+    var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragShader, fragShaderSource);
+    gl.compileShader(fragShader);
+    checkShaderCompile(fragShader, 'fragment');
+
+    // シェーダーのリンク
+    shaderProg = gl.createProgram();
+    gl.attachShader(shaderProg, vertShader);
+    gl.attachShader(shaderProg, fragShader);
+    gl.linkProgram(shaderProg);
+
+    // シェーダーパラメータの設定
+    shaderVertPosAttr = gl.getAttribLocation(shaderProg, 'vertPos');
+    gl.enableVertexAttribArray(shaderVertPosAttr);
+
+    // 描画
+    render();
+}
+
+/**
+ * 描画
+ */
+function render() {
+    // 画面のクリア
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // シェーダーの使用
+    gl.useProgram(shaderProg);
+
+    // 頂点属性に位置情報を設定
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
+    gl.vertexAttribPointer(shaderVertPosAttr, 3, gl.FLOAT, false, 0, 0);
+
+    // 描画
+    gl.drawArrays(gl.TRIANGLES, 0, 3/* 頂点数 */);
+}
+
+</script>
 </body>
+</html>
