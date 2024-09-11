@@ -4,16 +4,16 @@
 </head>
 <body onload="main()">
   <canvas id="sample" width="640" height="480">キャンバスがサポートされていないよ！</canvas>
+  <script>
+  function main() {
+    // canvas要素取得
+    var canvas = document.getElementByid("sample");
+  
+    // 描画コンテキスト取得
+    var ctx = canvas.getContext("2d");
+  
+    // 文字列を描画
+    ctx.fillText("Hello World");
+  }
+  </script>
 </body>
-<script>
-function main() {
-  // canvas要素取得
-  var canvas = document.getElementByid("sample");
-
-  // 描画コンテキスト取得
-  var ctx = canvas.getContext("2d");
-
-  // 文字列を描画
-  ctx.fillText("Hello World");
-}
-</script>
